@@ -1,0 +1,7 @@
+com/don/onofre/model/Clientes.class
+com/don/onofre/OnofreApplication.class
+com/don/onofre/repository/ClientesRepository.class
+com/don/onofre/model/Deudas.class
+com/don/onofre/controller/DeudasController.class
+com/don/onofre/repository/DeudasRepository.class
+com/don/onofre/controller/ClientesController.class

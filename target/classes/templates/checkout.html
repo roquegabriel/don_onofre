@@ -1,0 +1,314 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="es" data-bs-theme="auto">
+
+    <head>
+        <script th:src="@{/assets/js/color-modes.js}" type="text/javascript"></script>
+        <!--  <script src="assets/js/color-modes.js"></script>-->
+
+        <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta name="description" content="">
+                    <title>Checkout | Vinos y Licores Don Onofre</title>
+
+                    <link th:href="@{/assets/dist/css/bootstrap.min.css}" rel="stylesheet">
+
+
+                        </head>
+
+                        <body>
+                            <form action="#" th:action="@{/api/v1/createDebt}" method="post">
+                                <div class="container">
+                                    <h1>Carrito de compras</h1>
+                                    <hr>
+
+
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Item</th>
+                                                    <th scope="col">Cantidad</th>
+                                                    <th scope="col">Acción</th>
+                                                    <th scope="col">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="items">
+
+                                            </tbody>
+                                            <tfoot>
+                                                <tr id="footer">
+                                                    <th scope="row" colspan="5">Carrito vacío - empieza a comprar!</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <div class="row" id="cards">
+
+                                        </div>
+                                </div>
+                                <template id="template-footer">
+                                    <th scope="row" colspan="2">Total de productos</th>
+                                    <td>10</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" id="vaciar-carrito">
+                                            Vaciar carrito
+                                        </button>
+                                    </td>                         
+                                    <td class="font-weight-bold">G. 
+                                        <!--                                        <span>-->
+                                        <input id="total" type="text" th:name="total" class="border-0" onkeyup="success()" readonly/> 
+                                        <!--</span>-->
+                                    </td>
+
+                                </template>
+
+                                <div class="row justify-content-md-center">
+                                    <div class="col-md-auto">
+                                        <button  id="button_comprar" type="submit" class="btn btn-primary">Comprar</button>          
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <p><a href="/api/v1/" class="link-underline-info" type="button">Seguir comprando</a></p>
+                                    </div>
+                                </div>
+                            </form>    
+                            <!--                            <div class="d-grid gap-2 col-6 mx-auto">
+                                                            <form action="#" th:action="@{/api/v1/createDebt}" method="post">
+                                                                <button type="submit" class="btn btn-primary">Comprar</button>            
+                                                            </form>     
+                                                            <button class="btn btn-link" type="button">Seguir comprando</button>
+                                                        </div>-->
+
+                            <template id="template-carrito">
+                                <tr>
+                                    <th scope="row">id</th>
+                                    <td>Café</td>
+                                    <td>1</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm">
+                                            +
+                                        </button>
+                                        <button class="btn btn-danger btn-sm">
+                                            -
+                                        </button>
+                                    </td>
+                                    <td>G. <span>500</span></td>
+                                </tr>
+                            </template>
+                            <template id="template-card">
+                                <div class="col-12 mb-2 col-md-4">
+                                    <div class="card">
+                                        <img src="" alt="" class="card-img-top">
+                                            <div class="card-body">
+                                                <h5>Titulo</h5>
+                                                <p>precio</p>
+                                                <button class="btn btn-dark">Comprar</button>
+                                            </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <script th:src="@{/assets/dist/js/bootstrap.bundle.min.js}"></script>
+                            <script>
+
+                                const cards = document.getElementById('cards')
+                                const templateCard = document.getElementById('template-card').content
+                                const items = document.getElementById('items')
+                                const footer = document.getElementById('footer')
+                                const templateFooter = document.getElementById('template-footer').content
+                                const templateCarrito = document.getElementById('template-carrito').content
+                                const fragment = document.createDocumentFragment()
+                                let carrito = []
+                                let input_total = document.getElementById('total');
+                                let btn_comprar = document.getElementById('button_comprar');
+
+
+
+                                document.addEventListener('DOMContentLoaded', () => {
+
+                                    if (localStorage.getItem('cart')) {
+                                        carrito = JSON.parse(localStorage.getItem('cart'))
+                                        /* setCarrito(carrito) */
+                                        loadCart()
+                                    }
+                                }
+                                )
+
+
+                                cards.addEventListener('click', e => {
+                                    addCarrito(e)
+                                })
+
+                                items.addEventListener('click', e => {
+                                    buttonAction(e)
+                                })
+
+                                const fetchData = async () => {
+                                    try {
+                                        const res = await fetch('productos.json')
+                                        const data = await res.json()
+                                        pintarCard(data)
+
+                                    } catch (error) {
+                                        console.log(error)
+                                    }
+                                }
+
+                                const pintarCard = data => {
+                                    data.forEach(item => {
+                                        templateCard.querySelector('h5').textContent = item.title
+                                        templateCard.querySelector('p').textContent = item.precio
+                                        templateCard.querySelector('img').setAttribute('src', item.thumbnailUrl)
+                                        templateCard.querySelector('.btn-dark').dataset.id = item.id
+                                        const clone = templateCard.cloneNode(true)
+                                        fragment.appendChild(clone)
+                                    })
+                                    cards.appendChild(fragment)
+                                }
+
+                                const addCarrito = e => {
+
+                                    if (e.target.classList.contains('btn-dark')) {
+                                        setCarrito(e.target.parentElement)
+                                    }
+
+                                    e.stopPropagation()
+                                }
+
+
+                                const setCarrito = item => {
+
+                                    const producto = {
+                                        title: item[0].title,
+                                        precio: item[0].precio,
+                                        id: item[0].id,
+                                        cantidad: item[0].cantidad
+                                    }
+
+                                    if (carrito.hasOwnProperty(producto.id)) {
+                                        producto.cantidad = carrito[producto.id].cantidad + 1
+                                    }
+
+                                    carrito[producto.id] = {...producto}
+
+                                    loadCart()
+                                }
+
+
+
+                                const loadCart = () => {
+
+
+                                    items.innerHTML = ''
+                                    Object.values(carrito).forEach(producto => {
+                                        templateCarrito.querySelector('th').textContent = producto.id
+
+                                        templateCarrito.querySelectorAll('td')[0].innerHTML = "<input type='text' name='item' class='border-0' readonly  value=" + producto.title + ">"
+
+//                                        templateCarrito.querySelectorAll('td')[0].textContent = producto.title
+                                        templateCarrito.querySelectorAll('td')[1].textContent = producto.cantidad
+                                        templateCarrito.querySelector('.btn-info').dataset.id = producto.id
+                                        templateCarrito.querySelector('.btn-danger').dataset.id = producto.id
+                                        templateCarrito.querySelector('span').textContent = producto.cantidad * producto.precio
+                                        const clone = templateCarrito.cloneNode(true)
+                                        fragment.appendChild(clone)
+                                    })
+
+                                    items.appendChild(fragment)
+
+                                    loadFooter()
+                                    localStorage.setItem('cart', JSON.stringify(carrito))
+
+                                }
+
+                                const loadFooter = () => {
+                                    footer.innerHTML = ''
+                                    if (Object.keys(carrito).length === 0) {
+                                        footer.innerHTML = `
+                                                  <th scope="row" colspan="5">Carrito vacío - comience a comprar!</th>
+                                                  `
+                                        return
+                                    }
+
+                                    const nCantidad = Object.values(carrito).reduce((acc, { cantidad }) => acc + cantidad, 0)
+                                    const nPrecio = Object.values(carrito).reduce((acc, { cantidad, precio }) => acc + cantidad * precio, 0)
+
+                                    templateFooter.querySelectorAll('td')[0].textContent = nCantidad
+                                    templateFooter.querySelector('input').value = nPrecio
+
+                                    const clone = templateFooter.cloneNode(true)
+                                    fragment.appendChild(clone)
+                                    footer.appendChild(fragment)
+
+                                    const btnVaciar = document.getElementById('vaciar-carrito')
+                                    btnVaciar.addEventListener('click', () => {
+                                        carrito = []
+                                        btn_comprar.disabled=true
+                                        loadCart()
+                                    })
+                                }
+
+                                function onlyUnique(value, index, array) {
+                                    return array.indexOf(value.id) === index;
+                                }
+
+                                const buttonAction = e => {
+
+                                    if (e.target.classList.contains('btn-info')) {
+
+                                        const product = carrito.find(() => e.target.dataset.id)
+
+                                        var result = carrito.findIndex(() => e.target.dataset.id)
+
+                                        if (result === 0) {
+                                            product.cantidad++
+                                            carrito[0] = {...product}
+                                        } else {
+                                            product.cantidad++
+                                            carrito[product.id] = {...product}
+
+                                        }
+
+                                        loadCart()
+                                    }
+
+                                    if (e.target.classList.contains('btn-danger')) {
+                                        const product = carrito.find((element) => e.target.dataset.id)
+                                        product.cantidad--
+                                        if (product.cantidad === 0) {
+                                            delete carrito[e.target.dataset.id]
+                                        }
+                                        loadCart()
+
+                                    }
+
+                                    e.stopPropagation()
+                                }
+
+
+
+
+                                /* var data = [
+                                 { firstname: "John", lastname: "Smith", address: "New York" },
+                                 { firstname: "Claire", lastname: "Temple", address: "Racoon City" }
+                                 ]; */
+
+                                /* function populateTable() {
+                                 var table = "";
+                                 
+                                 for (var i in data) {
+                                 table += "<tr>";
+                                 table += "<td>"
+                                 + data[i].id + "</td>"
+                                 + "<td>" + data[i].title + "</td>"
+                                 + "<td>" + data[i].precio + "</td>";
+                                 table += "</tr>";
+                                 }
+                                 
+                                 document.getElementById("result").innerHTML = table;
+                                 
+                                 } */
+
+                            </script>
+                        </body>
+
+                        </html>
